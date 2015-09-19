@@ -1,0 +1,38 @@
+# define regarding OS, which compiler to use
+PRGNAME     = prosystem-od
+CC          = nspire-gcc
+LD          = nspire-gcc
+
+# add SDL dependencies
+SDL_LIB     = 
+SDL_INCLUDE = /usr/include/SDL
+
+# change compilation / linking flag options
+#CFLAGS      = -I$(SDL_INCLUDE) -D_VIDOD16_ -DNSPIRE -O3 -fomit-frame-pointer -marm -march=armv5te -mtune=arm926ej-s
+CFLAGS      = -I$(SDL_INCLUDE) -D_VIDOD16_ -DNSPIRE -O2 -mlittle-endian
+LDFLAGS     = -lSDL -lm
+
+# Files to be compiled
+SRCDIR    = ./emu/zlib  ./emu ./opendingux
+VPATH     = $(SRCDIR)
+SRC_C   = $(foreach dir, $(SRCDIR), $(wildcard $(dir)/*.c))
+OBJ_C   = $(notdir $(patsubst %.c, %.o, $(SRC_C)))
+OBJS     = $(OBJ_C)
+
+all : $(PRGNAME) gen
+
+# Rules to make executable
+$(PRGNAME): $(OBJS)  
+	$(LD) $(CFLAGS) -o $(PRGNAME)$(EXESUFFIX) $^ $(LDFLAGS)
+	
+$(OBJ_C) : %.o : %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	rm -f $(PRGNAME)$(EXESUFFIX) *.o
+
+gen:
+	genzehn --input $(PRGNAME) --output prosystem.t
+	make-prg prosystem.t $(PRGNAME).tns
+	rm prosystem.t
+	rm $(PRGNAME)
